@@ -1,4 +1,4 @@
-### A This events template Github-action
+### These are a few events template Github-action
 - push: push branches (You can custom which branches you want)
 - pull-request: 
   [opened, assigned, closed, reopened]

@@ -1,0 +1,77 @@
+name: Github action pull request
+
+on:
+  pull_request:
+    types: [opened, assigned, closed, reopened, synchronize]
+
+env:
+  CUSTOM_VARIABLE: "CUSTOM_VARIABLE"
+
+jobs:
+  check-secret:
+    runs-on: ubuntu-latest
+    outputs:
+      secret-key: ${{ steps.get-secret-key.outputs.SECRET_KEY }}
+    steps:
+      - name: Check Secret
+        id: get-secret-key
+        shell: bash
+        run: |
+          if [ "${{ secrets.SECRET_VARIABLE }}" != '' ]; then
+            echo "SECRET_KEY=true" >> $GITHUB_OUTPUT;
+          else
+            echo "SECRET_KEY=false" >> $GITHUB_OUTPUT;
+          fi
+
+  dump-git-context:
+    runs-on: ubuntu-latest
+    needs: [check-secret]
+    if: needs.check-secret.outputs.secret-key == 'true'
+    outputs:
+      token: ${{ needs.check-secret.outputs.secret-key }}
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Get type of pull request
+        run: echo ${{ github.event.action }}
+
+  created-pull-request:
+    needs: [check-secret]
+    if: needs.check-secret.outputs.secret-key == 'true' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Scenario created pull request"
+        run: echo "Created pull request"
+
+  close-pull-request:
+    needs: [check-secret]
+    if: needs.check-secret.outputs.secret-key == 'true' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Scenario closed pull request"
+        run: echo "Closed pull request"
+
+  reopened-pull-request:
+    needs: [check-secret]
+    if: needs.check-secret.outputs.secret-key == 'true' && github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Scenario reopened pull request"
+        run: echo "Reopened pull request"
+
+  pull-request:
+    needs: [check-secret]
+    if: needs.check-secret.outputs.secret-key == 'true'
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Pull request
+        run: |
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_CREATED_AT="${{ github.event.pull_request.created_at }}"
+          PR_ASSIGNEES="${{ join(github.event.pull_request.assignees.*.login, ', ') }}"
+          
+          echo "Pull Request Author: $PR_AUTHOR"
+          echo "Pull Request Creation Time: $PR_CREATED_AT"
+          echo "Pull Request Assignees: $PR_ASSIGNEES"

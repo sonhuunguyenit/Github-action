@@ -1,0 +1,31 @@
+name: Github action comment
+
+on:
+  issue_comment: 
+    types: [created, edited, deleted]
+
+env:
+  CUSTOM_VARIABLE: "CUSTOM_VARIABLE"
+  
+jobs:
+  github-action-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Comment on pull request
+        if: github.event.issue.pull_request != null
+        run: |
+          echo "Type comment: ${{ github.event.action }}"
+          echo "Comment Author: ${{ github.event.comment.user.login }}"
+          echo "Comment Created At: ${{ github.event.comment.created_at }}"
+
+      - name: Comment on issue
+        if: github.event.issue.pull_request == null
+        run: |
+          echo "Type comment: ${{ github.event.action }}"
+          echo "Comment Author: ${{ github.event.comment.user.login }}"
+          echo "Comment Created At: ${{ github.event.comment.created_at }}"

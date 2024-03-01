@@ -1,0 +1,48 @@
+name: Github action issue
+
+on:
+  issues:
+    types: [opened, assigned, closed, reopened]
+
+env:
+  CUSTOM_VARIABLE: "CUSTOM_VARIABLE"
+  
+jobs:
+  github-action-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJSON(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Get issue status
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          ISSUE_STATUS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                         -H "Accept: application/vnd.github.v3+json" \
+                         "https://api.github.com/repos/${{ github.repository }}/issues/${ISSUE_NUMBER}" \
+                         | jq '.state' -r)
+          echo "ISSUE_STATUS=$ISSUE_STATUS" >> $GITHUB_ENV
+
+      - name: Scenario open issue
+        if: env.ISSUE_STATUS == 'open' && github.event.action == 'opened'
+        run: echo "Created issue"
+
+      - name: Scenario close issue
+        if: env.ISSUE_STATUS == 'closed'
+        run: echo "Closed issue"
+      
+      - name: Scenario reopened issue
+        if: env.ISSUE_STATUS == 'open' && github.event.action == 'reopened'
+        run: echo "Reopened issue"
+
+      - name: Issue
+        run: |
+          ISSUE_AUTHOR="${{ github.event.issue.user.login }}"
+          ISSUE_CREATED_AT="${{ github.event.issue.created_at }}"
+          ISSUE_ASSIGNEES="${{ join(github.event.issue.assignees.*.login, ', ') }}"
+          
+          echo "Author: $ISSUE_AUTHOR"
+          echo "Creation Time: $ISSUE_CREATED_AT"
+          echo "Assignees: $ISSUE_ASSIGNEES"

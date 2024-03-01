@@ -1,0 +1,54 @@
+run-name: Push branches env ${{ github.event.inputs.env }} by @${{ github.actor }}
+
+on:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "documents/**"
+      - "**.exe"
+    branches:
+      - "main"
+      - "staging"
+      - "production"
+      - "test/**"
+  workflow_dispatch:
+
+env:
+  CUSTOM_VARIABLE: "CUSTOM_VARIABLE"
+
+jobs:
+  strategy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [16]
+        php: [8]
+    name: "Build on ${{ matrix.os }}, Node.js ${{ matrix.node }}, PHP ${{ matrix.php }}"
+    steps:
+      - name: Pull project
+        uses: actions/checkout@v3
+
+      - name: "Running ${{ env.ENV }} and Passing Variables"
+        run: echo "TIME=$(date)" >> $GITHUB_ENV
+
+      - name: "TIME"
+        run: echo Time $TIME
+
+      - name: CUSTOM_VARIABLE
+        run: echo CUSTOM_VARIABLE $CUSTOM_VARIABLE
+
+      - name: SCRET_VARIABLE
+        run: echo SECRET_VARIABLE ${{ secrets.SECRET_VARIABLE }}
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node index.js
+
+      - name: Setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+      - run: php index.php

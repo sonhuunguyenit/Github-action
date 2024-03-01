@@ -8,5 +8,5 @@ We have events:
     comment: (pull request and issue) 
         [created, edited, deleted]
 Note: You can go to the Action tab to see a history of GitHub action. 
-These are a few image: 
+These are a few images: 
 

@@ -1,1 +1,1 @@
-console.log("Javascript is running...");
+console.log("Javascript is running... dev");
